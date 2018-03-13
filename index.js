@@ -11,8 +11,10 @@ fly.http.respondWith(async (req) => {
 })
 
 const mounts = {
-  '/app': backends.heroku("test-heroku"),
-  '/surge': backends.surge("test-surge")
+  '/': backends.githubPages("superfly/onehostname-comic"),
+  '/example': backends.generic("https://example.com", { 'host': "example.com" }),
+  '/heroku': backends.heroku("example"),
+  '/surge': backends.surge("onehostname")
 }
 async function routeMounts(req) {
   const url = new URL(req.url)
@@ -21,12 +23,12 @@ async function routeMounts(req) {
     const backend = mounts[path]
     // handle mounts that end in a trailing slash
     if (trailingSlash && url.pathname.startsWith(path)) {
-      return await backend(req)
+      return await backend(req, path)
     }
 
     // handle /path
     if (url.pathname === path || url.pathname.startsWith(path + "/")) {
-      return await backend(req)
+      return await backend(req, path)
     }
   }
   return null
