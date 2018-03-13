@@ -11,7 +11,8 @@ fly.http.respondWith(async (req) => {
 })
 
 const mounts = {
-  '/app/': backends.heroku("test-heroku")
+  '/app': backends.heroku("test-heroku"),
+  '/surge': backends.surge("test-surge")
 }
 async function routeMounts(req) {
   const url = new URL(req.url)

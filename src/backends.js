@@ -12,15 +12,28 @@ export const heroku = function (appName) {
   return function (req) {
     const herokuApp = `${appName}.herokuapp.com`
     const override = {
-      url: {
-        protocol: "https:",
-        hostname: herokuApp,
-        port: 443,
-      }
+      protocol: "https:",
+      hostname: herokuApp,
+      port: 443,
     }
-    const breq = createProxyRequest(req, override)
+    const breq = createProxyRequest(req, { url: override })
     breq.headers.set("host", herokuApp)
     breq.headers.set("x-forwarded-host", req.headers.get("host"))
+    return fetch(breq)
+  }
+}
+
+export const surge = function (subdomain) {
+  return function (req) {
+    const surgeHost = `${subdomain}.surge.sh`
+    const override = {
+      protocol: "https:",
+      hostname: surgeHost,
+      port: 443
+    }
+    const breq = createProxyRequest(req, { url: override })
+    breq.headers.set('host', surgeHost)
+    breq.headers.delete('x-forwarded-host') // surge doesn't like this
     return fetch(breq)
   }
 }
