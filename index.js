@@ -32,6 +32,7 @@ const mounts = {
   '/example': backends.generic("https://example.com", { 'host': "example.com" }),
   '/heroku': backends.heroku("example"),
   '/surge': backends.surge("onehostname"),
+  '/unmarkdocs': backends.unmarkdocs("onehostname"),
   '/debug': debug,
   '/': backends.githubPages("superfly/onehostname-comic")
 }

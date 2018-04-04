@@ -80,11 +80,29 @@ export const githubPages = function (repository) {
   }
 }
 
+
+/**
+ * 
+ * Creates a UnMarkDocs application backend.
+ * @param {string} appName The UnMarkDocs application name 
+ */
+export const unmarkdocs = function (appName) {
+  return function unmarkdocsFetch(req, basePath) {
+    const unmarkdocsHost = `${appName}.unmarkdocs.co`
+    const headers = {
+      'host': unmarkdocsHost,
+      'x-forwarded-host': req.headers.get("hostname")
+    }
+    return proxy(req, `https://${unmarkdocsHost}`, { headers, basePath })
+  }
+}
+
 const backends = {
   generic,
   githubPages,
   heroku,
-  surge
+  surge,
+  unmarkdocs
 }
 export default backends
 
