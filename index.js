@@ -1,4 +1,4 @@
-import backends from './src/backends'
+import backends from './lib/backends'
 
 /**
  * Specify handlers to use during requests. These are just function references,

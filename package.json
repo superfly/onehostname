@@ -1,0 +1,31 @@
+{
+  "name": "onehostname",
+  "version": "0.1.0",
+  "description": "A Fly Edge App to route requests on one hostname to multiple backend sources",
+  "files": [
+    "lib/*"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "prepublishOnly": "tsc",
+    "test": "fly test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/superfly/onehostname.git"
+  },
+  "keywords": [
+    "edge-app",
+    "mount-http",
+    "proxy"
+  ],
+  "author": "Kurt Mackey",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/superfly/onehostname/issues"
+  },
+  "homepage": "https://fly.io",
+  "devDependencies": {
+    "typescript": "^2.8.1"
+  }
+}

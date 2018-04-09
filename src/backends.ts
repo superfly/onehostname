@@ -1,11 +1,11 @@
-
+declare var fly: any
 /**
  * 
  * Creates a Heroku application backend.
  * @param {string} appName The Heroku application name 
  */
-export const heroku = function (appName) {
-  return function herokuFetch(req, basePath) {
+export const heroku = function (appName: string) {
+  return function herokuFetch(req: Request, basePath: string) {
     const herokuHost = `${appName}.herokuapp.com`
     const headers = {
       'host': herokuHost,
@@ -19,8 +19,8 @@ export const heroku = function (appName) {
  * Creates a surge.sh backend
  * @param {string} subdomain The <subdomain>.surge.sh for the surge.sh site
  */
-export const surge = function (subdomain) {
-  return function surgeFetch(req, basePath) {
+export const surge = function (subdomain: string) {
+  return function surgeFetch(req: Request, basePath: string) {
     const surgeHost = `${subdomain}.surge.sh`
     const headers = {
       'host': surgeHost,
@@ -35,8 +35,8 @@ export const surge = function (subdomain) {
  * @param {string} origin The origin server to use (should be an ip, or resolve to a different IP)
  * @param {Object} [headers] Headers to pass to the origin server
  */
-export const generic = function (origin, headers) {
-  return function genericFetch(req, basePath) {
+export const generic = function (origin: string, headers: Headers) {
+  return function genericFetch(req: Request, basePath: string) {
     return proxy(req, origin, { basePath, headers })
   }
 }
@@ -45,10 +45,10 @@ export const generic = function (origin, headers) {
  * Creates a backend to proxy published Github Pages sites. Auto detects sites with cnames specified.
  * @param {string} repository The <organization>/<repository> to request.
  */
-export const githubPages = function (repository) {
+export const githubPages = function (repository: string) {
   // we're doing more with the response than the others, making this async
   // let's us use `await`
-  return async function githubPagesFetch(req, basePath) {
+  return async function githubPagesFetch(req: Request, basePath: string) {
     const [org, repo] = repository.split("/")
     const ghHost = `${org}.github.io`
     const headers = {
@@ -86,8 +86,8 @@ export const githubPages = function (repository) {
  * Creates a UnMarkDocs application backend.
  * @param {string} appName The UnMarkDocs application name 
  */
-export const unmarkdocs = function (appName) {
-  return function unmarkdocsFetch(req, basePath) {
+export const unmarkdocs = function (appName: string) {
+  return function unmarkdocsFetch(req: Request, basePath: string) {
     const unmarkdocsHost = `${appName}.unmarkdocs.co`
     const headers = {
       'host': unmarkdocsHost,
@@ -106,12 +106,14 @@ const backends = {
 }
 export default backends
 
-function proxy(req, origin, opts) {
+function proxy(req: Request, origin: string | URL, opts?: any) {
   const url = new URL(req.url)
-  let breq = null
+  let breq: any = null
 
   if (req instanceof Request) {
     breq = req.clone()
+  } else {
+    breq = new Request(req)
   }
 
   if (typeof origin === "string") {
@@ -134,9 +136,9 @@ function proxy(req, origin, opts) {
   }
 
   breq.url = url.toString()
-  breq.headers.set("x-forwarded-for", req.remoteAddr)
+  //breq.headers.set("x-forwarded-for", req.remoteAddr)
   //oreq.headers.set("x-forwarded-proto", req..substring(0, req.protocol.length - 1)) // because http: isn't right
-  breq.headers.set("x-forwarded-host", req.hostname)
+  breq.headers.set("x-forwarded-host", url.hostname)
 
   if (opts.headers && opts.headers instanceof Object) {
     for (const h of Object.getOwnPropertyNames(opts.headers)) {
