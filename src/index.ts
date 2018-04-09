@@ -1,2 +1,7 @@
 import backends from "./backends"
-export default { backends }
+import utilities from "./utilities"
+
+export default {
+  backends,
+  utilities
+}

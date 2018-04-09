@@ -16,6 +16,35 @@ export const heroku = function (appName: string) {
 }
 
 /**
+ *  Creates a Glitch project backend.
+ * @param projectName The name of the glitch project (like <name>.glitch.me)
+ */
+export const glitch = function (projectName: string) {
+  return function glitchFetch(req: Request, basePath: string) {
+    const glitchHost = `${projectName}.glitch.me`
+    const headers = { 'host': glitchHost, 'x-forwarded-host': false }
+    return proxy(req, `https://${glitchHost}`, { headers, basePath })
+  }
+}
+
+/**
+ * Creates a hosted Ghost backend.
+ * @param subdomain Ghost subdomain (like <fly-io>.ghost.io)
+ * @param customDomain Custom domain ghost expects (only if setup with Ghost control panel)
+ */
+export const ghost = function (subdomain: string, customDomain?: string) {
+  return function ghostFetch(req: Request, basePath: string) {
+    const ghostHost = `${subdomain}.ghost.io`
+    const host = customDomain || ghostHost
+    const headers = {
+      'host': ghostHost,
+      'x-forwarded-host': host
+    }
+    return proxy(req, `https://${ghostHost}`, { headers, basePath })
+  }
+}
+
+/**
  * Creates a surge.sh backend
  * @param {string} subdomain The <subdomain>.surge.sh for the surge.sh site
  */
@@ -99,7 +128,9 @@ export const unmarkdocs = function (appName: string) {
 
 const backends = {
   generic,
+  ghost,
   githubPages,
+  glitch,
   heroku,
   surge,
   unmarkdocs
@@ -127,6 +158,7 @@ function proxy(req: Request, origin: string | URL, opts?: any) {
   if (opts.basePath && typeof opts.basePath === 'string') {
     // remove basePath so we can serve `onehosthame.com/dir/` from `origin.com/`
     url.pathname = url.pathname.substring(opts.basePath.length)
+    console.log("rewriting base path:", opts.basePath, url.pathname)
   }
   if (origin.pathname && origin.pathname.length > 0) {
     url.pathname = origin.pathname + url.pathname
@@ -136,8 +168,8 @@ function proxy(req: Request, origin: string | URL, opts?: any) {
   }
 
   breq.url = url.toString()
-  //breq.headers.set("x-forwarded-for", req.remoteAddr)
-  //oreq.headers.set("x-forwarded-proto", req..substring(0, req.protocol.length - 1)) // because http: isn't right
+  // we extend req with remoteAddr
+  breq.headers.set("x-forwarded-for", (<any>req).remoteAddr)
   breq.headers.set("x-forwarded-host", url.hostname)
 
   if (opts.headers && opts.headers instanceof Object) {

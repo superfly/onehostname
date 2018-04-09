@@ -1,27 +1,16 @@
 import backends from './lib/backends'
+import { forceSSL } from './lib/utilities'
 
 /**
- * Specify handlers to use during requests. These are just function references,
- * with the same params: `(req:Request) -> Response`.
+ * Specify handler to use during requests. We can do basic middleware by
+ * wrapping fetch like functions.
  */
-const handlers = [
-  forceSSL,
-  routeMounts
-]
+const handler = forceSSL(routeMounts)
 
 /**
- * Response to http requests. First loop through the handlers above,
- * if none of them return a response send a 404.
+ * Respond to HTTP requests with the handler defined above
  */
-fly.http.respondWith(async (req) => {
-  let resp = null
-  for (const h of handlers) {
-    resp = h(req)
-    if (resp) return resp
-  }
-
-  return new Response("not found", { status: 404 })
-})
+fly.http.respondWith(handler)
 
 /**
  * This is a mount mapping: `/path => fetch(req)`
@@ -30,28 +19,31 @@ fly.http.respondWith(async (req) => {
  */
 const mounts = {
   '/example': backends.generic("https://example.com", { 'host': "example.com" }),
+  '/glitch': backends.glitch("fly-example"),
   '/heroku': backends.heroku("example"),
   '/surge': backends.surge("onehostname"),
   '/unmarkdocs': backends.unmarkdocs("onehostname"),
   '/debug': debug,
   '/': backends.githubPages("superfly/onehostname-comic")
 }
+
 async function routeMounts(req) {
   const url = new URL(req.url)
   for (const path of Object.getOwnPropertyNames(mounts)) {
     const trailingSlash = path[path.length - 1] === '/'
     const backend = mounts[path]
+    const basePath = path + (!trailingSlash && "/" || "")
     // handle mounts that end in a trailing slash
     if (trailingSlash && url.pathname.startsWith(path)) {
-      return await backend(req, path)
+      return await backend(req, basePath)
     }
 
     // handle /path
     if (url.pathname === path || url.pathname.startsWith(path + "/")) {
-      return await backend(req, path)
+      return await backend(req, basePath)
     }
   }
-  return null
+  return new Response("not found", { status: 404 })
 }
 
 /* Sometimes it's nice to see exactly what the app is getting. */
@@ -64,18 +56,4 @@ function debug(req) {
     app: app
   }
   return new Response(JSON.stringify(info), { headers: { "content-type": "application/json" } })
-}
-
-/**
- * If we're not running in development, we always want to redirect people to 
- * https
- */
-function forceSSL(req) {
-  const url = new URL(req.url)
-  if (app.env != "development" && url.protocol != "https:") {
-    url.protocol = "https:"
-    url.port = 443
-    return new Response("", { status: 301, headers: { location: url.toString() } })
-  }
-  return null
 }
