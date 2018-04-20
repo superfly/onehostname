@@ -1,6 +1,6 @@
 {
   "name": "onehostname",
-  "version": "0.1.1",
+  "version": "0.2.0-0",
   "description": "A Fly Edge App to route requests on one hostname to multiple backend sources",
   "files": [
     "lib/*"
@@ -26,6 +26,7 @@
   },
   "homepage": "https://fly.io",
   "devDependencies": {
+    "standard-version": "^4.3.0",
     "typescript": "^2.8.1"
   }
 }
