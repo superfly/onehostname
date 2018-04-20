@@ -23,6 +23,11 @@ const mounts = {
   '/heroku': backends.heroku("example"),
   '/surge': backends.surge("onehostname"),
   '/unmarkdocs': backends.unmarkdocs("onehostname"),
+  '/ghost': backends.ghost("newblog", {
+    customDomain: "blog.ghost.org",
+    basePath: "/ghost/",
+    keepCanonical: true
+  }),
   '/debug': debug,
   '/': backends.githubPages("superfly/onehostname-comic")
 }

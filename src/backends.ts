@@ -1,3 +1,9 @@
+import { rewriteLinks } from "./html";
+
+export interface Fetchable {
+  (req: RequestInfo, init?: RequestInit): Promise<Response>
+}
+
 declare var fly: any
 /**
  * 
@@ -27,21 +33,54 @@ export const glitch = function (projectName: string) {
   }
 }
 
+export interface GhostOptions {
+  customDomain?: string,
+  basePath?: string
+  keepCanonical?: boolean
+}
 /**
  * Creates a hosted Ghost backend.
  * @param subdomain Ghost subdomain (like <fly-io>.ghost.io)
  * @param customDomain Custom domain ghost expects (only if setup with Ghost control panel)
  */
-export const ghost = function (subdomain: string, customDomain?: string) {
-  return function ghostFetch(req: Request, basePath: string) {
-    const ghostHost = `${subdomain}.ghost.io`
-    const host = customDomain || ghostHost
+export const ghost = function (subdomain: string, opts?: GhostOptions) {
+  if (!opts) {
+    opts = {}
+  }
+  if (!opts.basePath) {
+    opts.basePath = "/"
+  }
+  let basePath = opts.basePath
+
+  const ghostHost = `${subdomain}.ghost.io`
+  const host = opts.customDomain || ghostHost
+  function ghostFetch(req: RequestInfo, init?: RequestInit) {
     const headers = {
       'host': ghostHost,
       'x-forwarded-host': host
     }
     return proxy(req, `https://${ghostHost}`, { headers, basePath })
   }
+
+  if (basePath && basePath != "/") {
+    if (!basePath.startsWith("/")) {
+      basePath = "/" + basePath
+    }
+
+    if (!basePath.endsWith("/")) {
+      basePath = basePath + "/"
+    }
+    const prefixes: { [key: string]: string } = {
+      "/": basePath,
+    }
+    prefixes[`http://${host}/`] = basePath
+    prefixes[`https://${host}/`] = basePath
+
+
+    return rewriteLinks(ghostFetch, { prefixes: prefixes, excludeCanonical: opts.keepCanonical })
+  }
+
+  return ghostFetch
 }
 
 /**
@@ -133,11 +172,15 @@ const backends = {
   glitch,
   heroku,
   surge,
-  unmarkdocs
+  unmarkdocs,
 }
+
 export default backends
 
-function proxy(req: Request, origin: string | URL, opts?: any) {
+function proxy(req: RequestInfo, origin: string | URL, opts?: any) {
+  if (!(req instanceof Request)) {
+    req = new Request(req)
+  }
   const url = new URL(req.url)
   let breq: any = null
 
