@@ -4,16 +4,14 @@ declare var Document: any
 import { Fetchable } from './backends'
 
 export interface RewriteOptions {
-  prefixes: {
-    [key: string]: string
-  },
+  prefixes: string[][],
   excludeCanonical?: boolean
 }
 export interface Prefixes {
   [key: string]: string
 }
 function prefixUrl(v: string, prefix: string, replace: string) {
-  if (v.startsWith(prefix) && !v.startsWith(prefix + "/")) {
+  if (v.startsWith(prefix)) {
     v = replace + v.substring(prefix.length)
   }
   return v
@@ -43,7 +41,6 @@ export function rewriteLinks(fetch: Fetchable, opts: RewriteOptions): Fetchable 
     let contentType = resp.headers.get("content-type")
     if (!contentType || !contentType.includes("text/html")) {
       // we only care about html right now
-      console.log("skippin")
       return resp
     }
     resp.headers.delete("content-length") // this'll change
@@ -58,12 +55,15 @@ export function rewriteLinks(fetch: Fetchable, opts: RewriteOptions): Fetchable 
         const a = l.a
         let v = tag.getAttribute(a)
         // ignore blank or protocol relative urls
-        if (!v || typeof v !== "string" || v.startsWith("//")) continue
+        if (!v || typeof v !== "string") continue
         const fn = l.fn
-        for (const p of Object.keys(prefixes)) {
-          let replace = prefixes[p] || ""
-          replace = fn(v, p, replace)
-          tag.setAttribute(a, replace)
+        for (const p of prefixes) {
+          let replace = p[1]
+          let done = fn(v, p[0], replace)
+          if (v != done) {
+            tag.setAttribute(a, done)
+            continue
+          }
         }
       }
     }

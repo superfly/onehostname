@@ -70,11 +70,13 @@ export const ghost = function (subdomain: string, opts?: GhostOptions) {
     if (!basePath.endsWith("/")) {
       basePath = basePath + "/"
     }
-    const prefixes: { [key: string]: string } = {
-      "/": basePath,
-    }
-    prefixes[`http://${host}/`] = basePath
-    prefixes[`https://${host}/`] = basePath
+    const prefixes = [
+      ["/", basePath],
+      [`http://${host}/`, basePath],
+      [`https://${host}/`, basePath],
+      [`http://${host}`, basePath],
+      [`https://${host}`, basePath]
+    ]
 
 
     return rewriteLinks(ghostFetch, { prefixes: prefixes, excludeCanonical: opts.keepCanonical })
