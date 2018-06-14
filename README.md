@@ -14,8 +14,7 @@ Install fly, clone this repo, compile typescript, start the server.
 $ git clone https://github.com/superfly/onehostname.git
 $ cd onehostname
 $ npm install
-$ npx tsc
-$ fly server
+$ npm run
 ```
 
 And then visit http://localhost:3000 in your browser. Or http://localhost:3000/heroku/. Or something from here: [index.js#L14-L18](index.js#L14-L18).

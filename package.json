@@ -8,6 +8,7 @@
   "main": "lib/index.js",
   "scripts": {
     "prepublishOnly": "tsc",
+    "start": "npx tsc && npx fly server",
     "test": "fly test"
   },
   "repository": {
